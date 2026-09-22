@@ -15,6 +15,14 @@ const LocationMap = dynamic(() => import("@/components/LocationMap"), { ssr: fal
 type Step = 1 | 2 | 3;
 type GeoState = "idle" | "locating" | "ready" | "denied" | "error";
 
+// The lat/lng columns are DecimalField(max_digits=9, decimal_places=6) --
+// browser geolocation/Leaflet return far more precision than that (15+
+// significant digits), which the API rejects with a 400. 6 decimal places
+// is already ~11cm precision, far finer than GPS accuracy anyway.
+function round6(n: number) {
+  return Math.round(n * 1e6) / 1e6;
+}
+
 export default function RegisterPage() {
   const { user, loading } = useRequireAuth();
   const router = useRouter();
@@ -45,7 +53,7 @@ export default function RegisterPage() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setCoords({ lat: round6(pos.coords.latitude), lng: round6(pos.coords.longitude) });
         setGeoState("ready");
       },
       (err) => {
@@ -203,7 +211,7 @@ export default function RegisterPage() {
                   <LocationMap
                     lat={coords.lat}
                     lng={coords.lng}
-                    onChange={(lat, lng) => setCoords({ lat, lng })}
+                    onChange={(lat, lng) => setCoords({ lat: round6(lat), lng: round6(lng) })}
                   />
                 </div>
                 {saveError && <p className="mb-3 text-[12.5px] text-red-600">{saveError}</p>}
