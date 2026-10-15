@@ -41,7 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     apiRequest<ScoutUser>("/auth/me/")
       .then(setUser)
-      .catch(() => clearTokens())
+      // Only a real auth rejection ends the session; a network failure (e.g.
+      // opening the installed app offline) must not wipe the stored tokens.
+      .catch((err) => {
+        if (err instanceof ApiError && (err.status === 401 || err.status === 403)) clearTokens();
+      })
       .finally(() => setLoading(false));
   }, []);
 

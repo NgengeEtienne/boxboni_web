@@ -5,6 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Waypoint",
     short_name: "Waypoint",
     description: "Field location registration",
+    id: "/",
     start_url: "/",
     scope: "/",
     display: "standalone",
